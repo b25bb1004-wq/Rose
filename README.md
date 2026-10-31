@@ -19,6 +19,8 @@ Status: v0.1, built and tested on one machine. MIT licensed.
 
 Hooks only remind. They never block a tool call, never raise, and exit 0 on any input.
 
+The five qualities and public skills for each: [docs/QUALITIES.md](docs/QUALITIES.md).
+
 ## Install
 
 ```
