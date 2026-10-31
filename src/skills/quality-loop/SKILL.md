@@ -9,7 +9,7 @@ quality: Planning
 | Step | Quick | Standard | Heavy |
 |---|---|---|---|
 | Memory (service) | read your notes only if a project is named | same, plus grep past lessons | same, plus re-check any fact that may be stale |
-| Plan | none | steps in the task list, each with a check, plus a toolbelt line per step | `python3 -I ~/.claude/quality-loop/toolbelt.py "<task>"`, then write the plan, then try to break it before executing. Optional: `planning-scout` agent, one at a time |
+| Plan | none | steps in the task list, each with a check, plus a toolbelt line per step | `python3 -I ~/.claude/quality-loop/toolbelt.py "<task>"`, then write the plan, then try to break it before executing. For a heavy task use `plan-any-task` (any task type, not only code): read the job, look at what exists, understand it, choose, write checked steps with sources, ask the user in up to 3 rounds, freeze, then ready the skills (one `skill-fitter` agent only if there are gaps; state its cost first). `planning-scout` stays as an optional lookup helper |
 | Execute | do it | follow the steps; mark each done only after its check | same; a failed check: `replan-on-failure` |
 | Critique | one check | `score-against-plan` | `score-against-plan` plus a judge that is not the author |
 | Archive | none | one line in your notes | note, lessons, handoff |

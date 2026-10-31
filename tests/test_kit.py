@@ -135,6 +135,23 @@ class Kit(unittest.TestCase):
         self.assertEqual(r.stdout.splitlines()[1].split()[0], "pdf-wrangler")
 
 
+    def test_prompt_hook_injects_a_shortlist(self):
+        run(self.home, INSTALLER)
+        self.put("skills/pdf-wrangler/SKILL.md", b"---\nname: pdf-wrangler\ndescription: Extract tables and text from PDF files\nquality: Execution\n---\nbody\n")
+        hook = os.path.join(self.home, ".claude/quality-loop/hooks/quality_prompt.py")
+        task = json.dumps({"prompt": "please extract the tables from a pdf and build a report"})
+        ctx = json.loads(run(self.home, hook, stdin=task).stdout)["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("pdf-wrangler", ctx)
+        ledger = os.path.join(self.home, "t.jsonl")
+        open(ledger, "w").write('{"name": "TaskCreate"}\n')
+        both = json.dumps({"prompt": "please extract the tables from a pdf and build a report", "transcript_path": ledger})
+        ctx = json.loads(run(self.home, hook, stdin=both).stdout)["hookSpecificOutput"]["additionalContext"]
+        self.assertIn("pdf-wrangler", ctx)
+        self.assertNotIn("TaskCreate the steps", ctx)  # ledger session: shortlist only, no reminder line
+        self.assertTrue(os.path.exists(os.path.join(self.home, ".claude/skills/plan-any-task/SKILL.md")))
+        self.assertTrue(os.path.exists(os.path.join(self.home, ".claude/agents/skill-fitter.md")))
+
+
 class Hygiene(unittest.TestCase):
     """The repo must carry no personal string and no secret. The personal denylist lives OUTSIDE the repo."""
     SECRET = re.compile(r"sk-[A-Za-z0-9]{20,}|nvapi-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{30,}|hf_[A-Za-z0-9]{30,}|"

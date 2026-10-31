@@ -2,7 +2,7 @@
 
 Rose organises work into five qualities. Every task touches them in this order, and repeats: **Memory** (a service every step calls), **Planning**, **Execution**, **Critique**, **Archiving**. Tag your own skills with `quality: <name>` in the frontmatter and `toolbelt.py` will file them here; skills without the tag are guessed from their words.
 
-Rose ships twelve skills and one agent. The rest of this page points at public plugins that add more. Nothing from those plugins is copied into this repo: install them from their own repositories.
+Rose ships thirteen skills and three agents. The rest of this page points at public plugins that add more. Nothing from those plugins is copied into this repo: install them from their own repositories.
 
 | Quality | Ships with Rose | Good public skills for it (plugin:skill) |
 |---|---|---|

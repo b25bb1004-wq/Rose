@@ -2,13 +2,16 @@
 """UserPromptSubmit hook: one short quality-loop reminder when a prompt starts real work.
 
 Reminder only. It never blocks, never raises, and stays silent for factory prompts, slash commands,
-system notices, short chatter, plain questions, and sessions that already hold a task-list ledger.
+system notices, short chatter and plain questions. On a task prompt it also runs the kit's toolbelt (BM25, local) and
+injects the top installed skills, so the plan never depends on remembering to look; a session that already holds a
+task-list ledger gets the shortlist without the reminder line.
 Loop ticks (cron or /loop prompts) get a different line: the queue is the plan, only Archive is owed.
 Python 3.9 compatible, standard library only, no network, no state, nothing logged.
 """
 import json
 import os
 import re
+import subprocess
 import sys
 
 TICK = re.compile(r"\bloop tick\b|<<autonomous-loop|\bscheduled (?:task|run|trigger)\b", re.I)
@@ -30,8 +33,7 @@ SKIP_START = ("# Your instructions", "/", "<", "This session is being continued"
               "[Request interrupted", "Caveat:")
 
 MSG_TASK = ("quality-loop: quick (an answer or a one-step edit) means just do it, say nothing. Standard or heavy: state "
-            "the lane in one line, TaskCreate the steps plus an Archive step, run python3 -I ~/.claude/quality-loop/toolbelt.py "
-            "\"<task>\" for tools, and end with score-against-plan.")
+            "the lane in one line, TaskCreate the steps plus an Archive step, name a tool from the shortlist on each step, and end with score-against-plan.")
 MSG_TICK = ("quality-loop, loop tick: the queue is the plan, skip the toolbelt. Do the item, then the Archive step "
             "(a line in your notes, a lesson if any). Blocked: write one line and stop.")
 
@@ -65,14 +67,31 @@ def ledger_exists(transcript_path):
         return False
 
 
+def shortlist(prompt):
+    """Top installed skills for this prompt from the kit's toolbelt (BM25, local, about 0.05 s); '' on any failure."""
+    try:
+        tb = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "toolbelt.py")
+        out = subprocess.run([sys.executable, "-I", tb, prompt.strip()[:600]], capture_output=True, text=True, timeout=3).stdout.splitlines()
+        rows = [l[:150] for l in out if re.match(r"^\S+ \[\w+\] - ", l)][:4]
+        return "toolbelt shortlist (a hint from keywords, check that the skill fits):\n" + "\n".join(rows) if rows else ""
+    except Exception:
+        return ""
+
+
 def main():
     data = json.load(sys.stdin)
-    kind = classify(data.get("prompt", ""))
+    prompt = data.get("prompt", "")
+    kind = classify(prompt)
     if kind is None:
         return
-    if kind == "task" and ledger_exists(data.get("transcript_path", "")):
-        return
-    msg = MSG_TICK if kind == "tick" else MSG_TASK
+    if kind == "tick":
+        msg = MSG_TICK
+    else:
+        msg = shortlist(prompt)
+        if not ledger_exists(data.get("transcript_path", "")):
+            msg = MSG_TASK + ("\n" + msg if msg else "")
+        if not msg:
+            return
     print(json.dumps({"hookSpecificOutput": {"hookEventName": "UserPromptSubmit", "additionalContext": msg}}))
 
 

@@ -1,8 +1,8 @@
 # Rose
 
-Rose is a small kit for Claude Code that makes a coding agent plan before it acts, check its own work, and write down what it learned. It adds no service and no dependency: twelve skills, one agent, two hooks, one keyword lookup, and a single-file installer that you can undo.
+Rose is a small kit for Claude Code that makes a coding agent plan before it acts, check its own work, and write down what it learned. It adds no service and no dependency: thirteen skills, three agents, two hooks, one keyword lookup, and a single-file installer that you can undo.
 
-Status: v0.1, built and tested on one machine. MIT licensed.
+Status: v0.2, built and tested on one machine. MIT licensed.
 
 ## What you get
 
@@ -12,9 +12,11 @@ Status: v0.1, built and tested on one machine. MIT licensed.
 | `replan-on-failure` skill | Stop, probe once, rewrite only the remaining steps, at most 2 replans. |
 | `score-against-plan` skill | Run the plan's own checks, score them, scan for known failure modes. |
 | `selftest-mutation-check` skill | Prove a new test can fail before trusting it. |
+| `plan-any-task` skill | Plans any heavy task (not only code) like a researcher: choose the planning tools, read the job, look at what exists, understand it, choose, write checked steps with sources, ask you in up to 3 rounds, freeze, then ready the skills. Includes a plan template. |
 | Eight more skills | `bounded-delegation` (cap fan-out and cost), `verify-before-commit-push`, `eval-harness-sanity-check` (with exact-bound sizing of n), `archive-before-delete`, `log-failure-as-skill`, `handoff-before-clear`, `vet-third-party-skill`, `prior-art-audit`. |
 | `planning-scout` agent | Cheap lookup-only helper that maps plan steps to installed skills. |
-| `quality_prompt.py` hook (UserPromptSubmit) | One-line reminder when a prompt starts real work. Silent for questions, thanks, slash commands, and sessions that already have a task list. A different line for scheduled loop ticks. |
+| `skill-fitter` agent | After a plan is frozen: checks each step against your installed skills, fixes near-fits, writes missing ones, returns a manifest. One at a time, cost stated first. |
+| `quality_prompt.py` hook (UserPromptSubmit) | One-line reminder plus a shortlist of the top 4 installed skills (from the toolbelt) when a prompt starts real work. Silent for questions, thanks, slash commands, and sessions that already have a task list. A different line for scheduled loop ticks. |
 | `quality_guard.py` hook (PreToolUse) | One-line reminder before `git commit`/`push`, destructive commands (`rm -rf`, `git clean`, `reset --hard`) and subagent launches. It parses the shell, so `echo "git push"`, a grep pattern or a heredoc body does not fire it. |
 | `toolbelt.py` | `python3 -I ~/.claude/quality-loop/toolbelt.py "<task>"` ranks your installed skills for a task (BM25 over names and descriptions). Free, offline. |
 
@@ -39,6 +41,11 @@ Customise the guard in `~/.claude/quality-loop/config.json`: `{"messages": {"git
 
 `python3 tests/test_kit.py` rebuilds the installer and runs 9 tests in throwaway `HOME` directories, under the system Python 3.9 as well when present: install, check, uninstall leaves the tree identical; existing files restored byte for byte; idempotent second install; dry run writes nothing; invalid settings aborts; user edits survive uninstall; hook behaviour on 12 shell commands and 6 non-task prompts plus malformed input; a secret-pattern scan of the repo and of the embedded payload. Set `QL_DENYLIST=/path/to/file` (outside the repo) to also scan for personal strings.
 
+## What is new in v0.2
+- `plan-any-task` skill and `skill-fitter` agent (above).
+- The prompt hook now injects the toolbelt shortlist itself. v0.1 only told the agent to run the lookup, and the author measured the agent following that reminder on 1 of 102 task prompts. The rate with the shortlist injected has not been measured yet.
+- Not included: the author's larger skill-catalogue graph and its aisle-by-aisle walker; they depend on a personal catalogue build. The kit's toolbelt does the lookup instead.
+
 ## Evidence, and its limits
 
 These numbers come from the author's own setup, which is larger than this kit. They show the approach is measurable, not that it will work for you.
@@ -46,6 +53,7 @@ These numbers come from the author's own setup, which is larger than this kit. T
 - Without any hook, the agent used the quality-loop skill or a task list on 1 of 102 task prompts over 72 hours (0.98%). That is why the reminder hook exists. The rate after the hook has not been measured yet; do not assume it is high.
 - The prompt classifier, checked against 1,474 historical prompts labelled by "the agent made 3 or more tool calls": it fired on 58% of those, and on about 46% of all prompts. It is a blunt reminder, not a router.
 - Skill retrieval on 40 hand-written queries over about 750 skills: BM25 alone put the right skill in the top 3 for 65%; adding local embeddings reached 78%. **This kit ships BM25 only.** On a smaller skill set it should do better, but nobody has measured that.
+- A subagent is expensive: a test run of a lookup-only scout agent cost about 109k tokens (56k of that was baseline context before it did anything, 49k was output), which is why `skill-fitter` is gated to plans with gaps and told to state its cost first.
 - The guard was replayed over 7,780 real shell commands. The simple substring version it replaced fired on many false positives (grep patterns, `docker rm`, `2>/dev/null`); the parser removed them and caught commands like `git -c user.name=x commit` that the old one missed.
 
 Known limits: the lane choice is still the model's judgement; reminders can be ignored; `quality:` tags are guessed from keywords for skills that have none; no Windows testing; hook commands call `python3`.
