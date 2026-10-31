@@ -1,6 +1,6 @@
-# quality-loop-kit
+# Rose
 
-A small kit for Claude Code that makes a coding agent plan before it acts, check its own work, and write down what it learned. It adds no service and no dependency: four skills, one agent, two hooks, one keyword lookup, and a single-file installer that you can undo.
+Rose is a small kit for Claude Code that makes a coding agent plan before it acts, check its own work, and write down what it learned. It adds no service and no dependency: four skills, one agent, two hooks, one keyword lookup, and a single-file installer that you can undo.
 
 Status: v0.1, built and tested on one machine. Not yet published.
 
