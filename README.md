@@ -2,7 +2,7 @@
 
 Rose is a small kit for Claude Code that makes a coding agent plan before it acts, check its own work, and write down what it learned. It adds no service and no dependency: four skills, one agent, two hooks, one keyword lookup, and a single-file installer that you can undo.
 
-Status: v0.1, built and tested on one machine. Not yet published.
+Status: v0.1, built and tested on one machine. MIT licensed.
 
 ## What you get
 
@@ -47,9 +47,7 @@ These numbers come from the author's own setup, which is larger than this kit. T
 
 Known limits: the lane choice is still the model's judgement; reminders can be ignored; `quality:` tags are guessed from keywords for skills that have none; no Windows testing; hook commands call `python3`.
 
-## Before publishing (checklist for the author)
+## Next
 
-- [ ] Choose licence (MIT file is a draft) and repository name.
-- [ ] Run `QL_DENYLIST=... python3 tests/test_kit.py` with a denylist of your own names, paths and hosts.
-- [ ] Read every file in `src/` once as a stranger would.
-- [ ] Measure adherence after a week with the hooks on and replace the baseline above.
+- Measure adherence after a week with the hooks on and replace the baseline above.
+- Optional local embeddings for the toolbelt (the author's setup uses them; this kit does not ship them).
