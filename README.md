@@ -1,6 +1,6 @@
 # Rose
 
-Rose is a small kit for Claude Code that makes a coding agent plan before it acts, check its own work, and write down what it learned. It adds no service and no dependency: four skills, one agent, two hooks, one keyword lookup, and a single-file installer that you can undo.
+Rose is a small kit for Claude Code that makes a coding agent plan before it acts, check its own work, and write down what it learned. It adds no service and no dependency: twelve skills, one agent, two hooks, one keyword lookup, and a single-file installer that you can undo.
 
 Status: v0.1, built and tested on one machine. MIT licensed.
 
@@ -12,6 +12,7 @@ Status: v0.1, built and tested on one machine. MIT licensed.
 | `replan-on-failure` skill | Stop, probe once, rewrite only the remaining steps, at most 2 replans. |
 | `score-against-plan` skill | Run the plan's own checks, score them, scan for known failure modes. |
 | `selftest-mutation-check` skill | Prove a new test can fail before trusting it. |
+| Eight more skills | `bounded-delegation` (cap fan-out and cost), `verify-before-commit-push`, `eval-harness-sanity-check` (with exact-bound sizing of n), `archive-before-delete`, `log-failure-as-skill`, `handoff-before-clear`, `vet-third-party-skill`, `prior-art-audit`. |
 | `planning-scout` agent | Cheap lookup-only helper that maps plan steps to installed skills. |
 | `quality_prompt.py` hook (UserPromptSubmit) | One-line reminder when a prompt starts real work. Silent for questions, thanks, slash commands, and sessions that already have a task list. A different line for scheduled loop ticks. |
 | `quality_guard.py` hook (PreToolUse) | One-line reminder before `git commit`/`push`, destructive commands (`rm -rf`, `git clean`, `reset --hard`) and subagent launches. It parses the shell, so `echo "git push"`, a grep pattern or a heredoc body does not fire it. |
